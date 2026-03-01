@@ -1,0 +1,96 @@
+package com.realestatecrm.service;
+
+import com.realestatecrm.dto.PropertyDto;
+import com.realestatecrm.dto.PropertyRequest;
+import com.realestatecrm.exception.ResourceNotFoundException;
+import com.realestatecrm.model.Property;
+import com.realestatecrm.model.PropertyStatus;
+import com.realestatecrm.repository.PropertyRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PropertyService {
+
+    private final PropertyRepository propertyRepository;
+
+    public List<PropertyDto> getAllProperties() {
+        return propertyRepository.findAll().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<PropertyDto> getAvailableProperties() {
+        return propertyRepository.findByStatus(PropertyStatus.AVAILABLE).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    public PropertyDto getPropertyById(Long id) {
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Property", "id", id));
+        return mapToDto(property);
+    }
+
+    @Transactional
+    public PropertyDto createProperty(PropertyRequest request) {
+        Property property = Property.builder()
+                .title(request.getTitle())
+                .location(request.getLocation())
+                .price(request.getPrice())
+                .propertyType(request.getPropertyType())
+                .description(request.getDescription())
+                .status(request.getStatus() != null ? request.getStatus() : PropertyStatus.AVAILABLE)
+                .build();
+
+        Property saved = propertyRepository.save(property);
+        log.info("Created property: {}", saved.getTitle());
+        return mapToDto(saved);
+    }
+
+    @Transactional
+    public PropertyDto updateProperty(Long id, PropertyRequest request) {
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Property", "id", id));
+
+        property.setTitle(request.getTitle());
+        property.setLocation(request.getLocation());
+        property.setPrice(request.getPrice());
+        property.setPropertyType(request.getPropertyType());
+        property.setDescription(request.getDescription());
+        if (request.getStatus() != null) {
+            property.setStatus(request.getStatus());
+        }
+
+        return mapToDto(propertyRepository.save(property));
+    }
+
+    @Transactional
+    public void deleteProperty(Long id) {
+        if (!propertyRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Property", "id", id);
+        }
+        propertyRepository.deleteById(id);
+        log.info("Deleted property with id: {}", id);
+    }
+
+    public PropertyDto mapToDto(Property property) {
+        return PropertyDto.builder()
+                .id(property.getId())
+                .title(property.getTitle())
+                .location(property.getLocation())
+                .price(property.getPrice())
+                .propertyType(property.getPropertyType())
+                .description(property.getDescription())
+                .status(property.getStatus())
+                .createdAt(property.getCreatedAt())
+                .build();
+    }
+}
