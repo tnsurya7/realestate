@@ -18,19 +18,27 @@ public class DataSeeder {
     private final UserRepository userRepository;
     private final AuthService authService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.admin.email}")
+    private String adminEmail;
+
+    @org.springframework.beans.factory.annotation.Value("${app.admin.password}")
+    private String adminPassword;
+
+    @org.springframework.beans.factory.annotation.Value("${app.admin.name}")
+    private String adminName;
+
     @Bean
     public CommandLineRunner initDefaultAdmin() {
         return args -> {
-            String adminEmail = "surya@gmail.com";
             if (!userRepository.existsByEmail(adminEmail)) {
                 log.info("Creating default Super Admin...");
                 RegisterRequest request = new RegisterRequest();
-                request.setName("Super Admin");
+                request.setName(adminName);
                 request.setEmail(adminEmail);
-                request.setPassword("Surya@777");
+                request.setPassword(adminPassword);
                 request.setRole(Role.ADMIN);
                 authService.register(request);
-                log.info("Default Super Admin created successfully. [surya@gmail.com / Surya@777]");
+                log.info("Default Super Admin created successfully. [" + adminEmail + "]");
             }
         };
     }
