@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { adminService } from '../../services/adminService';
 import type { User } from '../../types';
-import { EmptyState } from '../../components/UI';
+import { EmptyState, Spinner } from '../../components/UI';
+import Modal from '../../components/Modal';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const MOCK_AGENTS: User[] = [
     { id: 1, name: 'Ravi Kumar', email: 'ravi@crm.com', role: 'AGENT' },
@@ -13,16 +15,42 @@ const MOCK_AGENTS: User[] = [
 const AdminAgentsPage: React.FC = () => {
     const [agents, setAgents] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
 
     useEffect(() => {
         adminService.getAgents().then(setAgents).catch(() => setAgents(MOCK_AGENTS)).finally(() => setLoading(false));
     }, []);
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitLoading(true);
+        try {
+            const newAgent = await adminService.createAgent(formData);
+            setAgents(prev => [newAgent, ...prev]);
+            setIsModalOpen(false);
+            setFormData({ name: '', email: '', password: '' });
+            toast.success('Agent created successfully');
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error(err.response?.data?.message || 'Failed to create agent');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Agents</h1>
-                <p className="text-gray-500 text-sm mt-0.5">{agents.length} registered agents</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Agents</h1>
+                    <p className="text-gray-500 text-sm mt-0.5">{agents.length} registered agents</p>
+                </div>
+                <button onClick={() => setIsModalOpen(true)} className="btn-primary w-full sm:w-auto">
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    Create Agent
+                </button>
             </div>
 
             {loading ? (
@@ -69,6 +97,30 @@ const AdminAgentsPage: React.FC = () => {
                     ))}
                 </div>
             )}
+
+            {/* Create Agent Modal */}
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Agent">
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4" autoComplete="off">
+                    <div>
+                        <label className="label">Agent Name</label>
+                        <input type="text" className="input-field" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} autoComplete="new-password" />
+                    </div>
+                    <div>
+                        <label className="label">Email Address</label>
+                        <input type="email" className="input-field" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} autoComplete="new-password" />
+                    </div>
+                    <div>
+                        <label className="label">Password (Default)</label>
+                        <input type="password" className="input-field" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} autoComplete="new-password" />
+                    </div>
+                    <div className="pt-2 flex justify-end gap-3">
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancel</button>
+                        <button type="submit" className="btn-primary" disabled={submitLoading}>
+                            {submitLoading ? <><Spinner size="w-4 h-4 mr-2" /> Creating...</> : 'Confirm & Create'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };

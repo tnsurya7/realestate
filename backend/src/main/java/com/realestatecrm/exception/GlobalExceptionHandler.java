@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AccountLockedException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -56,8 +56,8 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Invalid email or password"));
     }
 
-    @ExceptionHandler(AccountLockedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccountLocked(AccountLockedException ex) {
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccountLocked(LockedException ex) {
         return ResponseEntity.status(HttpStatus.LOCKED)
                 .body(ApiResponse.error("Account is locked due to multiple failed login attempts"));
     }

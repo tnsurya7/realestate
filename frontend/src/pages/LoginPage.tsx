@@ -79,13 +79,14 @@ const LoginPage: React.FC = () => {
                             </motion.div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
                             <div>
                                 <label className="label">Email Address</label>
                                 <input
                                     type="email" className="input-field"
                                     placeholder="you@company.com" value={email}
                                     onChange={e => setEmail(e.target.value)} required autoFocus
+                                    autoComplete="off" data-lpignore="true"
                                 />
                             </div>
                             <div>
@@ -95,6 +96,7 @@ const LoginPage: React.FC = () => {
                                         type={showPass ? 'text' : 'password'} className="input-field pr-10"
                                         placeholder="Enter your password" value={password}
                                         onChange={e => setPassword(e.target.value)} required
+                                        autoComplete="new-password" data-lpignore="true"
                                     />
                                     <button type="button" onClick={() => setShowPass(!showPass)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">

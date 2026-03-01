@@ -11,7 +11,7 @@ import com.realestatecrm.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AccountLockedException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -65,7 +65,7 @@ public class AuthService {
             if (isLockExpired(user)) {
                 unlockAccount(user);
             } else {
-                throw new AccountLockedException("Account is locked. Please try again later.");
+                throw new LockedException("Account is locked. Please try again later.");
             }
         }
 
@@ -76,7 +76,7 @@ public class AuthService {
             handleFailedAttempt(user);
             int remaining = maxFailedAttempts - user.getFailedAttempts();
             if (remaining <= 0) {
-                throw new AccountLockedException("Account locked after " + maxFailedAttempts + " failed attempts.");
+                throw new LockedException("Account locked after " + maxFailedAttempts + " failed attempts.");
             }
             throw new BadCredentialsException("Invalid credentials. " + remaining + " attempt(s) remaining.");
         }

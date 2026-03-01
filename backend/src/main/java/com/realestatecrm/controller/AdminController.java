@@ -37,6 +37,7 @@ public class AdminController {
     private final AnalyticsService analyticsService;
     private final PdfReportService pdfReportService;
     private final UserRepository userRepository;
+    private final com.realestatecrm.service.AuthService authService;
 
     // ---- Leads ----
 
@@ -121,6 +122,16 @@ public class AdminController {
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(agents));
+    }
+
+    @PostMapping("/agents")
+    @Operation(summary = "Create a new agent")
+    public ResponseEntity<ApiResponse<UserDto>> createAgent(
+            @Valid @RequestBody com.realestatecrm.dto.RegisterRequest request) {
+        request.setRole(Role.AGENT); // Force role to AGENT
+        UserDto created = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(created, "Agent created successfully"));
     }
 
     // ---- Analytics ----
