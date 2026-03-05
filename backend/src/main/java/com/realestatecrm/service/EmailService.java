@@ -525,4 +525,111 @@ public class EmailService {
                 companyName
             );
     }
+
+
+    public void sendPropertyRecommendations(com.realestatecrm.model.Lead lead, java.util.List<com.realestatecrm.model.Property> properties) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(lead.getCustomerEmail());
+            helper.setSubject("🏡 Property Recommendations Just for You - " + companyName);
+            helper.setText(buildPropertyRecommendationTemplate(lead, properties), true);
+
+            mailSender.send(message);
+            log.info("Property recommendations sent to: {}", lead.getCustomerEmail());
+        } catch (MessagingException e) {
+            log.error("Failed to send property recommendations", e);
+            throw new RuntimeException("Failed to send property recommendations", e);
+        }
+    }
+
+    private String buildPropertyRecommendationTemplate(com.realestatecrm.model.Lead lead, java.util.List<com.realestatecrm.model.Property> properties) {
+        StringBuilder propertiesHtml = new StringBuilder();
+
+        for (com.realestatecrm.model.Property property : properties) {
+            propertiesHtml.append(String.format("""
+                <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #1e293b; margin-top: 0;">%s</h3>
+                    <p style="color: #64748b; margin: 5px 0;">📍 %s</p>
+                    <p style="color: #059669; font-weight: 600; font-size: 20px; margin: 10px 0;">₹%s</p>
+                    <p style="color: #475569; margin: 10px 0;">%s</p>
+                    <div style="display: flex; gap: 15px; margin: 10px 0;">
+                        <span style="color: #64748b;">🛏️ %d Bedrooms</span>
+                        <span style="color: #64748b;">🚿 %d Bathrooms</span>
+                        <span style="color: #64748b;">📐 %.0f sq ft</span>
+                    </div>
+                </div>
+                """,
+                property.getTitle(),
+                property.getLocation(),
+                String.format("%,d", property.getPrice().longValue()),
+                property.getDescription() != null ? property.getDescription() : "Beautiful property in prime location",
+                property.getBedrooms() != null ? property.getBedrooms() : 0,
+                property.getBathrooms() != null ? property.getBathrooms() : 0,
+                property.getArea() != null ? property.getArea() : 0.0
+            ));
+        }
+
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background-color: #f8fafc; }
+                    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+                    .header { background: linear-gradient(135deg, #2563eb 0%%, #1e40af 100%%); padding: 40px 30px; text-align: center; }
+                    .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; }
+                    .header p { color: #dbeafe; margin: 8px 0 0 0; font-size: 14px; }
+                    .content { padding: 40px 30px; }
+                    .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
+                    .footer p { margin: 5px 0; font-size: 13px; color: #64748b; }
+                    .footer a { color: #2563eb; text-decoration: none; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🏡 Property Recommendations</h1>
+                        <p>Handpicked properties matching your preferences</p>
+                    </div>
+                    <div class="content">
+                        <h2 style="text-align: center; color: #1e293b; margin-bottom: 10px;">Hi %s!</h2>
+                        <p style="text-align: center; color: #64748b; margin-bottom: 30px;">We found some amazing properties that match your budget and preferences.</p>
+
+                        %s
+
+                        <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #f1f5f9; border-radius: 8px;">
+                            <p style="color: #475569; margin: 0;">Interested in any of these properties?</p>
+                            <p style="color: #64748b; font-size: 14px; margin: 10px 0;">Contact us for more details or to schedule a viewing!</p>
+                            <div style="margin-top: 15px;">
+                                <a href="tel:+91%s" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 5px;">📞 Call Us</a>
+                                <a href="https://wa.me/91%s" style="display: inline-block; background-color: #10b981; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 5px;">💬 WhatsApp</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p><strong>%s</strong></p>
+                        <p>%s</p>
+                        <p><a href="mailto:%s">%s</a> | +91 %s</p>
+                        <p style="margin-top: 15px; color: #94a3b8; font-size: 12px;">You're receiving this because you expressed interest in properties. <a href="#" style="color: #94a3b8;">Unsubscribe</a></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """,
+            lead.getCustomerName(),
+            propertiesHtml.toString(),
+            contactPhone,
+            contactPhone,
+            companyName,
+            companyAddress,
+            contactEmail,
+            contactEmail,
+            contactPhone
+        );
+    }
+
 }

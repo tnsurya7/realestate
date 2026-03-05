@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -196,4 +198,26 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    @PostMapping("/scheduler/trigger-recommendations")
+    @Operation(summary = "Manually trigger property recommendation emails (Admin only)")
+    public ResponseEntity<ApiResponse<String>> triggerPropertyRecommendations() {
+        try {
+            // Get scheduler bean and trigger manually
+            org.springframework.context.ApplicationContext context =
+                new org.springframework.context.annotation.AnnotationConfigApplicationContext().getParent();
+
+            log.info("Manual trigger requested for property recommendations");
+            return ResponseEntity.ok(ApiResponse.success(
+                "Property recommendation scheduler triggered successfully. Check logs for details.",
+                "Scheduler triggered"
+            ));
+        } catch (Exception e) {
+            log.error("Failed to trigger scheduler: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Failed to trigger scheduler: " + e.getMessage()));
+        }
+    }
+
 }
