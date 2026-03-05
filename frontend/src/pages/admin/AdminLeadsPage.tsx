@@ -138,7 +138,7 @@ const AdminLeadsPage: React.FC = () => {
                 <div className="flex gap-3 flex-wrap">
                     {isAdmin && (
                         <button onClick={handleDownloadPDF} disabled={downloadLoading} className="btn-secondary text-sm">
-                            {downloadLoading ? <><Spinner size="w-4 h-4" /> Generating...</> : '📥 Download PDF'}
+                            {downloadLoading ? <><Spinner size="w-4 h-4" /> Generating...</> : 'Download PDF'}
                         </button>
                     )}
                     {isAdmin && <button onClick={openCreate} className="btn-primary text-sm">+ New Lead</button>}
@@ -179,7 +179,7 @@ const AdminLeadsPage: React.FC = () => {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => <SkeletonRow key={i} />)
                             ) : filtered.length === 0 ? (
-                                <tr><td colSpan={8}><EmptyState icon="📋" title="No leads found" description="Add a new lead or adjust filters." /></td></tr>
+                                <tr><td colSpan={8}><EmptyState icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>} title="No leads found" description="Add a new lead or adjust filters." /></td></tr>
                             ) : (
                                 filtered.map(lead => (
                                     <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
@@ -209,13 +209,24 @@ const AdminLeadsPage: React.FC = () => {
                                                     <button
                                                         onClick={() => { setNotesModal(lead); setNotes(lead.notes || ''); }}
                                                         className="text-xs btn-secondary btn-sm px-2 py-1"
-                                                    >📝</button>
+                                                        title="Add Notes"
+                                                    ><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
                                                 )}
                                                 {isAdmin && (
                                                     <>
-                                                        <button onClick={() => { setAssignModal(lead); setAssignAgentId(String(lead.assignedAgent?.id || '')); }} className="text-xs btn-secondary btn-sm px-2 py-1" title="Assign">👤</button>
-                                                        <button onClick={() => openEdit(lead)} className="text-xs btn-secondary btn-sm px-2 py-1">✏️</button>
-                                                        <button onClick={async () => { if (confirm('Delete this lead?')) { await leadService.delete(lead.id); fetch(); toast.success('Deleted!'); } }} className="text-xs btn-danger btn-sm px-2 py-1">🗑</button>
+                                                        <button onClick={() => { setAssignModal(lead); setAssignAgentId(String(lead.assignedAgent?.id || '')); }} className="text-xs btn-secondary btn-sm px-2 py-1" title="Assign Agent"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></button>
+                                                        <button onClick={() => openEdit(lead)} className="text-xs btn-secondary btn-sm px-2 py-1" title="Edit Lead"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                                                        <button onClick={() => {
+                                                            toast((t) => (
+                                                                <div>
+                                                                    <p className="mb-2">Delete this lead?</p>
+                                                                    <div className="flex gap-2">
+                                                                        <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={async () => { toast.dismiss(t.id); await leadService.delete(lead.id); fetch(); toast.success('Deleted!'); }}>Yes</button>
+                                                                        <button className="bg-gray-200 px-2 py-1 rounded" onClick={() => toast.dismiss(t.id)}>No</button>
+                                                                    </div>
+                                                                </div>
+                                                            ), { duration: 4000 });
+                                                        }} className="text-xs btn-danger btn-sm px-2 py-1" title="Delete Lead"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                                     </>
                                                 )}
                                             </div>
@@ -229,7 +240,7 @@ const AdminLeadsPage: React.FC = () => {
             </motion.div>
 
             {/* Lead Create/Edit Modal */}
-            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingLead ? '✏️ Edit Lead' : '+ New Lead'} maxWidth="max-w-2xl">
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingLead ? 'Edit Lead' : '+ New Lead'} maxWidth="max-w-2xl">
                 <form onSubmit={handleSave} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div><label className="label">Full Name *</label><input className="input-field" value={form.customerName} onChange={e => setForm(f => ({ ...f, customerName: e.target.value }))} required /></div>
@@ -266,16 +277,16 @@ const AdminLeadsPage: React.FC = () => {
             </Modal>
 
             {/* Notes Modal */}
-            <Modal isOpen={!!notesModal} onClose={() => setNotesModal(null)} title={`📝 Add Notes — ${notesModal?.customerName}`}>
+            <Modal isOpen={!!notesModal} onClose={() => setNotesModal(null)} title={`Add Notes — ${notesModal?.customerName}`}>
                 <textarea className="input-field w-full" rows={6} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Write your notes here..." />
                 <div className="flex gap-3 mt-4">
                     <button className="btn-secondary flex-1 justify-center" onClick={() => setNotesModal(null)}>Cancel</button>
-                    <button className="btn-primary flex-1 justify-center" onClick={handleSaveNotes}>💾 Save Notes</button>
+                    <button className="btn-primary flex-1 justify-center" onClick={handleSaveNotes}>Save Notes</button>
                 </div>
             </Modal>
 
             {/* Assign Modal */}
-            <Modal isOpen={!!assignModal} onClose={() => setAssignModal(null)} title={`👤 Assign Agent — ${assignModal?.customerName}`}>
+            <Modal isOpen={!!assignModal} onClose={() => setAssignModal(null)} title={`Assign Agent — ${assignModal?.customerName}`}>
                 <div className="mb-4">
                     <label className="label">Select Agent</label>
                     <select className="input-field" value={assignAgentId} onChange={e => setAssignAgentId(e.target.value)}>

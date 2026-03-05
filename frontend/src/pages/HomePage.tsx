@@ -6,25 +6,6 @@ import type { Property } from '../types';
 import { propertyService } from '../services/propertyService';
 import { SkeletonCard } from '../components/UI';
 
-// Fallback mock data with real Unsplash images
-const MOCK_PROPERTIES: Property[] = [
-    {
-        id: 1, title: 'Luxury 3BHK in Anna Nagar', location: 'Chennai', price: 8500000,
-        propertyType: 'APARTMENT', status: 'AVAILABLE', bedrooms: 3, bathrooms: 2, area: 1600,
-        imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80',
-    },
-    {
-        id: 2, title: 'Premium Villa with Pool', location: 'Coimbatore', price: 22000000,
-        propertyType: 'VILLA', status: 'AVAILABLE', bedrooms: 5, bathrooms: 4, area: 4500,
-        imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80',
-    },
-    {
-        id: 3, title: 'Commercial Space – IT Park', location: 'Hyderabad', price: 15000000,
-        propertyType: 'COMMERCIAL', status: 'AVAILABLE', area: 3000,
-        imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80',
-    },
-];
-
 const WHY_FEATURES = [
     {
         icon: (
@@ -79,7 +60,7 @@ const HomePage: React.FC = () => {
     useEffect(() => {
         propertyService.getPublic()
             .then(setProperties)
-            .catch(() => setProperties(MOCK_PROPERTIES))
+            .catch(() => setProperties([]))
             .finally(() => setLoading(false));
     }, []);
 
@@ -88,7 +69,7 @@ const HomePage: React.FC = () => {
         navigate(`/properties?q=${encodeURIComponent(searchQuery)}`);
     };
 
-    const displayProperties = properties.length ? properties.slice(0, 6) : MOCK_PROPERTIES;
+    const displayProperties = properties.slice(0, 6);
 
     return (
         <div className="pt-16">

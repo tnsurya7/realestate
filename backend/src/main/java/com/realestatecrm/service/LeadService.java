@@ -29,12 +29,20 @@ public class LeadService {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final PropertyService propertyService;
+    private final EmailService emailService;
 
-    public List<LeadDto> getAllLeads() {
+    public List<LeadDto> getAllLeadsList() {
+        log.info("Fetching all leads without pagination");
         return leadRepository.findAll().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
+
+    public org.springframework.data.domain.Page<LeadDto> getAllLeads(org.springframework.data.domain.Pageable pageable) {
+        log.info("Fetching leads - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        return leadRepository.findAll(pageable).map(this::mapToDto);
+    }
+
 
     public LeadDto getLeadById(Long id) {
         Lead lead = leadRepository.findById(id)
@@ -61,8 +69,9 @@ public class LeadService {
                 .notes(request.getNotes())
                 .status(request.getStatus() != null ? request.getStatus() : LeadStatus.NEW);
 
+        Property property = null;
         if (request.getPropertyId() != null) {
-            Property property = propertyRepository.findById(request.getPropertyId())
+            property = propertyRepository.findById(request.getPropertyId())
                     .orElseThrow(() -> new ResourceNotFoundException("Property", "id", request.getPropertyId()));
             builder.property(property);
         }
@@ -78,6 +87,14 @@ public class LeadService {
 
         Lead saved = leadRepository.save(builder.build());
         log.info("Created lead for: {}", saved.getCustomerName());
+
+        // Send email notification
+        try {
+            emailService.sendLeadNotificationEmail(request, property);
+        } catch (Exception e) {
+            log.error("Failed to send lead notification email", e);
+        }
+
         return mapToDto(saved);
     }
 

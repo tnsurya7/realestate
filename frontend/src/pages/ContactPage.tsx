@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Spinner } from '../components/UI';
+import { contactService } from '../services/contactService';
 
-const PHONE = '9360004968';
-const EMAIL = 'suryakumar56394@gmail.com';
+const PHONE = import.meta.env.VITE_CONTACT_PHONE || '9360004968';
+const EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'suryakumar56394@gmail.com';
 const WA_MSG = 'Hello, I would like to get in touch with RealEstateCrm.';
 
 const ContactPage: React.FC = () => {
@@ -14,10 +15,15 @@ const ContactPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
-        await new Promise(r => setTimeout(r, 1200));
-        toast.success("Message sent! We'll get back to you within 24 hours.");
-        setForm({ name: '', email: '', phone: '', message: '' });
-        setSubmitting(false);
+        try {
+            await contactService.submit(form);
+            toast.success("Message sent! We'll get back to you within 24 hours.");
+            setForm({ name: '', email: '', phone: '', message: '' });
+        } catch (error) {
+            toast.error('Failed to send message. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (

@@ -42,6 +42,15 @@ public class Property {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    private Integer bedrooms;
+
+    private Integer bathrooms;
+
+    private Double area;
+
+    @Column(length = 1000)
+    private String imageUrl;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

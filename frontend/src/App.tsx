@@ -20,7 +20,6 @@ import AdminLeadsPage from './pages/admin/AdminLeadsPage';
 import AdminPropertiesPage from './pages/admin/AdminPropertiesPage';
 import AdminAgentsPage from './pages/admin/AdminAgentsPage';
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
-import AdminReportsPage from './pages/admin/AdminReportsPage';
 
 // Protected Route Guard
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -50,7 +49,6 @@ const App: React.FC = () => (
       <Route path="properties" element={<AdminRoute><AdminPropertiesPage /></AdminRoute>} />
       <Route path="agents" element={<AdminRoute><AdminAgentsPage /></AdminRoute>} />
       <Route path="analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
-      <Route path="reports" element={<AdminRoute><AdminReportsPage /></AdminRoute>} />
     </Route>
 
     {/* Fallback */}

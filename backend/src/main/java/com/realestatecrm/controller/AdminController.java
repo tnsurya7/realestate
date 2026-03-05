@@ -42,9 +42,30 @@ public class AdminController {
     // ---- Leads ----
 
     @GetMapping("/leads")
-    @Operation(summary = "Get all leads")
-    public ResponseEntity<ApiResponse<List<LeadDto>>> getAllLeads() {
-        return ResponseEntity.ok(ApiResponse.success(leadService.getAllLeads()));
+    @Operation(summary = "Get all leads with pagination")
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<LeadDto>>> getAllLeads(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        
+        org.springframework.data.domain.Sort.Direction sortDirection = 
+            direction.equalsIgnoreCase("ASC") ? 
+            org.springframework.data.domain.Sort.Direction.ASC : 
+            org.springframework.data.domain.Sort.Direction.DESC;
+        
+        org.springframework.data.domain.Pageable pageable = 
+            org.springframework.data.domain.PageRequest.of(page, size, 
+            org.springframework.data.domain.Sort.by(sortDirection, sortBy));
+        
+        org.springframework.data.domain.Page<LeadDto> leads = leadService.getAllLeads(pageable);
+        return ResponseEntity.ok(ApiResponse.success(leads));
+    }
+    
+    @GetMapping("/leads/all")
+    @Operation(summary = "Get all leads without pagination (legacy)")
+    public ResponseEntity<ApiResponse<List<LeadDto>>> getAllLeadsLegacy() {
+        return ResponseEntity.ok(ApiResponse.success(leadService.getAllLeadsList()));
     }
 
     @GetMapping("/leads/{id}")
@@ -133,6 +154,16 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(created, "Agent created successfully"));
     }
+
+    @PutMapping("/agents/{id}")
+    @Operation(summary = "Update an agent")
+    public ResponseEntity<ApiResponse<UserDto>> updateAgent(
+            @PathVariable Long id,
+            @Valid @RequestBody com.realestatecrm.dto.UpdateUserRequest request) {
+        UserDto updated = authService.updateUser(id, request);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Agent updated successfully"));
+    }
+
 
     // ---- Analytics ----
 

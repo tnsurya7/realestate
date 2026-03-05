@@ -5,22 +5,12 @@ import { Spinner } from '../../components/UI';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area } from 'recharts';
 import { motion } from 'framer-motion';
 
-const MOCK: Analytics = {
-    totalLeads: 42, totalProperties: 18, totalAgents: 6,
-    leadCountByStatus: { NEW: 18, CONTACTED: 16, CLOSED: 8 },
-    leadCountByProperty: [
-        { propertyId: 1, propertyTitle: 'Anna Nagar 3BHK', count: 12 },
-        { propertyId: 2, propertyTitle: 'Villa with Pool', count: 8 },
-        { propertyId: 3, propertyTitle: 'IT Park Office', count: 6 },
-        { propertyId: 4, propertyTitle: 'Studio Apt', count: 4 },
-        { propertyId: 5, propertyTitle: 'Farm House', count: 3 },
-    ],
-    leadCountByAgent: [
-        { agentId: 1, agentName: 'Ravi Kumar', count: 15 },
-        { agentId: 2, agentName: 'Priya Sharma', count: 12 },
-        { agentId: 3, agentName: 'Arun Patel', count: 8 },
-        { agentId: 4, agentName: 'Sunita Nair', count: 7 },
-    ],
+
+const EMPTY_ANALYTICS: Analytics = {
+    totalLeads: 0, totalProperties: 0, totalAgents: 0,
+    leadCountByStatus: {},
+    leadCountByProperty: [],
+    leadCountByAgent: [],
 };
 
 const MONTHLY = [
@@ -35,10 +25,10 @@ const AdminAnalyticsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        adminService.getAnalytics().then(setAnalytics).catch(() => setAnalytics(MOCK)).finally(() => setLoading(false));
+        adminService.getAnalytics().then(setAnalytics).catch(() => setAnalytics(null)).finally(() => setLoading(false));
     }, []);
 
-    const a = analytics || MOCK;
+    const a = analytics || EMPTY_ANALYTICS;
     const pieData = Object.entries(a.leadCountByStatus).map(([name, value]) => ({ name, value }));
     const agentData = a.leadCountByAgent.map(ag => ({ name: ag.agentName.split(' ')[0], leads: ag.count }));
     const propData = a.leadCountByProperty.map(p => ({ name: p.propertyTitle.split(' ').slice(0, 2).join(' '), leads: p.count }));
@@ -56,7 +46,12 @@ const AdminAnalyticsPage: React.FC = () => {
 
             {/* Summary Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[['Total Leads', a.totalLeads, '👥', 'bg-blue-500'], ['New Leads', a.leadCountByStatus.NEW || 0, '🆕', 'bg-amber-500'], ['Closed', a.leadCountByStatus.CLOSED || 0, '✅', 'bg-green-500'], ['Agents', a.totalAgents, '👤', 'bg-purple-500']].map(([label, val, icon, color], i) => (
+                {[
+                    ['Total Leads', a.totalLeads, <svg key="1" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, 'bg-blue-500'],
+                    ['New Leads', a.leadCountByStatus.NEW || 0, <svg key="2" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>, 'bg-amber-500'],
+                    ['Closed', a.leadCountByStatus.CLOSED || 0, <svg key="3" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>, 'bg-green-500'],
+                    ['Agents', a.totalAgents, <svg key="4" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>, 'bg-purple-500']
+                ].map(([label, val, icon, color], i) => (
                     <motion.div key={String(label)} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="card p-5">
                         <div className="flex items-start justify-between">
                             <div><p className="text-sm text-gray-500">{label}</p><p className="text-2xl font-bold text-gray-900 mt-1">{val}</p></div>

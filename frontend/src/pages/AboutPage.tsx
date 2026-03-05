@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const PHONE = '9360004968';
-const EMAIL = 'suryakumar56394@gmail.com';
+const PHONE = import.meta.env.VITE_CONTACT_PHONE || '9360004968';
+const EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'suryakumar56394@gmail.com';
 
 const TEAM = [
     {

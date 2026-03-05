@@ -39,9 +39,31 @@ public class PropertyController {
     // Admin-only endpoints
     @GetMapping("/admin/properties")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Get all properties including SOLD (Admin only)")
-    public ResponseEntity<ApiResponse<List<PropertyDto>>> getAllProperties() {
-        return ResponseEntity.ok(ApiResponse.success(propertyService.getAllProperties()));
+    @Operation(summary = "Get all properties with pagination (Admin only)")
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<PropertyDto>>> getAllProperties(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        
+        org.springframework.data.domain.Sort.Direction sortDirection = 
+            direction.equalsIgnoreCase("ASC") ? 
+            org.springframework.data.domain.Sort.Direction.ASC : 
+            org.springframework.data.domain.Sort.Direction.DESC;
+        
+        org.springframework.data.domain.Pageable pageable = 
+            org.springframework.data.domain.PageRequest.of(page, size, 
+            org.springframework.data.domain.Sort.by(sortDirection, sortBy));
+        
+        org.springframework.data.domain.Page<PropertyDto> properties = propertyService.getAllProperties(pageable);
+        return ResponseEntity.ok(ApiResponse.success(properties));
+    }
+    
+    @GetMapping("/admin/properties/all")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Get all properties without pagination (Admin only - legacy)")
+    public ResponseEntity<ApiResponse<List<PropertyDto>>> getAllPropertiesLegacy() {
+        return ResponseEntity.ok(ApiResponse.success(propertyService.getAllPropertiesList()));
     }
 
     @PostMapping("/admin/properties")

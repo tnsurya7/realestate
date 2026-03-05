@@ -23,4 +23,8 @@ public class PropertyDto {
     private String description;
     private PropertyStatus status;
     private LocalDateTime createdAt;
+    private Integer bedrooms;
+    private Integer bathrooms;
+    private Double area;
+    private String imageUrl;
 }

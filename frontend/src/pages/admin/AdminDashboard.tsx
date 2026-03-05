@@ -3,31 +3,12 @@ import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/adminService';
 import { leadService } from '../../services/leadService';
 import { propertyService } from '../../services/propertyService';
-import type { Analytics, Lead, LeadStatus, Property, PropertyType, PropertyStatus, User } from '../../types';
+import type { Analytics, Lead, LeadStatus, Property, PropertyType, PropertyStatus } from '../../types';
 import { StatCard, SkeletonCard, SkeletonRow, EmptyState, Spinner } from '../../components/UI';
 import Modal from '../../components/Modal';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-
-// ──────────────────────────────────────────────────────
-//  MOCK DATA
-// ──────────────────────────────────────────────────────
-const MOCK_ANALYTICS: Analytics = {
-    totalLeads: 42, totalProperties: 18, totalAgents: 6,
-    leadCountByStatus: { NEW: 18, CONTACTED: 16, CLOSED: 8 },
-    leadCountByProperty: [
-        { propertyId: 1, propertyTitle: 'Anna Nagar 3BHK', count: 12 },
-        { propertyId: 2, propertyTitle: 'Villa with Pool', count: 8 },
-        { propertyId: 3, propertyTitle: 'IT Park Office', count: 6 },
-    ],
-    leadCountByAgent: [],
-};
-const MOCK_PROPERTIES: Property[] = [
-    { id: 1, title: 'Luxury 3BHK in Anna Nagar', location: 'Chennai', price: 8500000, propertyType: 'APARTMENT', status: 'AVAILABLE', bedrooms: 3, bathrooms: 2, area: 1600, imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=70' },
-    { id: 2, title: 'Premium Villa with Pool', location: 'Coimbatore', price: 22000000, propertyType: 'VILLA', status: 'AVAILABLE', bedrooms: 5, bathrooms: 4, area: 4500, imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70' },
-    { id: 3, title: 'Commercial Space – IT Park', location: 'Hyderabad', price: 15000000, propertyType: 'COMMERCIAL', status: 'AVAILABLE', area: 3000, imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=70' },
-];
 
 // ──────────────────────────────────────────────────────
 //  ICONS
@@ -63,7 +44,6 @@ const AdminDashboard: React.FC = () => {
     const [analytics, setAnalytics] = useState<Analytics | null>(null);
     const [leads, setLeads] = useState<Lead[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
-    const [agents, setAgents] = useState<User[]>([]);
     const [loadingAnalytics, setLoadingAnalytics] = useState(true);
     const [loadingLeads, setLoadingLeads] = useState(true);
     const [loadingProperties, setLoadingProperties] = useState(true);
@@ -89,7 +69,7 @@ const AdminDashboard: React.FC = () => {
         try {
             const a = await adminService.getAnalytics();
             setAnalytics(a);
-        } catch { setAnalytics(MOCK_ANALYTICS); }
+        } catch { setAnalytics(null); }
         finally { setLoadingAnalytics(false); }
 
         try {
@@ -100,13 +80,10 @@ const AdminDashboard: React.FC = () => {
 
         try {
             const p = await propertyService.getAll();
-            setProperties(p.length ? p : MOCK_PROPERTIES);
-        } catch { setProperties(MOCK_PROPERTIES); }
+            setProperties(p);
+        } catch { setProperties([]); }
         finally { setLoadingProperties(false); }
 
-        if (isAdmin) {
-            try { setAgents(await adminService.getAgents()); } catch { /* ignore */ }
-        }
     }, [isAdmin]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -137,7 +114,11 @@ const AdminDashboard: React.FC = () => {
         e.preventDefault(); setSavingLead(true);
         try {
             const payload = { ...leadForm, budget: leadForm.budget ? parseFloat(leadForm.budget) : undefined, propertyId: leadForm.propertyId ? parseInt(leadForm.propertyId) : undefined };
-            editingLead ? await leadService.update(editingLead.id, payload as Record<string, unknown>) : await leadService.create(payload as Record<string, unknown>);
+            if (editingLead) {
+                await leadService.update(editingLead.id, payload as Record<string, unknown>);
+            } else {
+                await leadService.create(payload as Record<string, unknown>);
+            }
             toast.success(editingLead ? 'Lead updated!' : 'Lead created!');
             setLeadModal(false); fetchAll();
         } catch { toast.error('Failed to save lead'); } finally { setSavingLead(false); }
@@ -162,7 +143,11 @@ const AdminDashboard: React.FC = () => {
         e.preventDefault(); setSavingProp(true);
         try {
             const payload = { ...propForm, price: parseFloat(propForm.price), bedrooms: propForm.bedrooms ? parseInt(propForm.bedrooms) : undefined, bathrooms: propForm.bathrooms ? parseInt(propForm.bathrooms) : undefined, area: propForm.area ? parseFloat(propForm.area) : undefined };
-            editingProp ? await propertyService.update(editingProp.id, payload) : await propertyService.create(payload);
+            if (editingProp) {
+                await propertyService.update(editingProp.id, payload);
+            } else {
+                await propertyService.create(payload);
+            }
             toast.success(editingProp ? 'Property updated!' : 'Property created!');
             setPropModal(false); fetchAll();
         } catch { toast.error('Failed to save property'); } finally { setSavingProp(false); }
@@ -173,11 +158,22 @@ const AdminDashboard: React.FC = () => {
         catch { toast.error('Failed to delete property'); }
     };
     const toggleHideProp = (id: number) => {
-        setHiddenPropIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+        setHiddenPropIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
         toast.success(hiddenPropIds.has(id) ? 'Property visible again.' : 'Property hidden from public listing.');
     };
 
-    const a = analytics || MOCK_ANALYTICS;
+    const a = analytics || {
+        totalLeads: 0, totalProperties: 0, totalAgents: 0,
+        leadCountByStatus: {}, leadCountByProperty: [], leadCountByAgent: []
+    } as Analytics;
     const pieData = Object.entries(a.leadCountByStatus).map(([name, value]) => ({ name, value }));
     const barData = a.leadCountByProperty.map((p) => ({ name: (p.propertyTitle || '').split(' ').slice(0, 2).join(' '), leads: p.count }));
 
@@ -189,7 +185,7 @@ const AdminDashboard: React.FC = () => {
                     <motion.h1 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="text-2xl font-bold text-gray-900">
                         Dashboard Overview
                     </motion.h1>
-                    <p className="text-sm text-gray-500 mt-0.5">Welcome back, {user?.name?.split(' ')[0]}! Here's what's happening.</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Welcome back, {user?.name}! Here's what's happening.</p>
                 </div>
                 <motion.button
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}

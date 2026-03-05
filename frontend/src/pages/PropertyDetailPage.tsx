@@ -3,19 +3,11 @@ import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Modal from '../components/Modal';
 import { leadService } from '../services/leadService';
-import { propertyService } from '../services/propertyService';
 import toast from 'react-hot-toast';
 import { Spinner } from '../components/UI';
 import type { Property } from '../types';
-
-const MOCK_PROPERTIES: Record<string, Property & { description?: string }> = {
-    '1': { id: 1, title: 'Luxury 3BHK in Anna Nagar', location: 'Anna Nagar, Chennai', price: 8500000, propertyType: 'APARTMENT', status: 'AVAILABLE', bedrooms: 3, bathrooms: 2, area: 1600, imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=85', description: 'A stunning 3-bedroom apartment in the prime area of Anna Nagar with premium amenities, 24/7 security, modern interiors, and excellent connectivity to major IT hubs and schools.' },
-    '2': { id: 2, title: 'Premium Villa with Pool', location: 'Coimbatore', price: 22000000, propertyType: 'VILLA', status: 'AVAILABLE', bedrooms: 5, bathrooms: 4, area: 4500, imageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=85', description: 'An exquisite 5-bedroom villa with a private swimming pool, landscaped garden, and modern architecture. Perfect for luxury living in a serene environment.' },
-    '3': { id: 3, title: 'Commercial Space – IT Park', location: 'Hyderabad', price: 15000000, propertyType: 'COMMERCIAL', status: 'AVAILABLE', area: 3000, imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=85', description: 'Prime commercial office space in a Grade-A IT park with floor-to-ceiling windows, high-speed internet, and proximity to major tech companies.' },
-    '4': { id: 4, title: 'Studio Apartment – City Centre', location: 'Bengaluru', price: 4500000, propertyType: 'APARTMENT', status: 'AVAILABLE', bedrooms: 1, bathrooms: 1, area: 650, imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=85', description: 'A smart studio apartment perfect for young professionals in the heart of Bengaluru. Fully furnished with modern appliances and metro connectivity.' },
-    '5': { id: 5, title: 'Farm House Retreat', location: 'Mysore', price: 11000000, propertyType: 'VILLA', status: 'SOLD', bedrooms: 4, bathrooms: 3, area: 8000, imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=85', description: 'A sprawling farmhouse retreat with lush gardens, a courtyard, and peaceful countryside views. Ideal as a second home or weekend getaway.' },
-    '6': { id: 6, title: 'Office Space – Premier Zone', location: 'Mumbai', price: 35000000, propertyType: 'OFFICE', status: 'AVAILABLE', area: 5000, imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=85', description: 'Premium office space in Mumbai\'s most prestigious business district. Features include smart lighting, HVAC, and a dedicated reception area.' },
-};
+import api from '../services/api';
+import type { ApiResponse } from '../types';
 
 const PHONE = '9360004968';
 const WA_MSG = 'Hello, I am interested in a property from RealEstateCrm.';
@@ -23,24 +15,45 @@ const WA_MSG = 'Hello, I am interested in a property from RealEstateCrm.';
 const PropertyDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [property, setProperty] = useState<(Property & { description?: string }) | null>(null);
+    const [loading, setLoading] = useState(true);
     const [interestModal, setInterestModal] = useState(false);
     const [form, setForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', budget: '', source: 'Website' });
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (!id) return;
-        propertyService.getAll()
-            .then(list => { const found = list.find(p => String(p.id) === id); if (found) setProperty(found); else setProperty(MOCK_PROPERTIES[id] || null); })
-            .catch(() => setProperty(MOCK_PROPERTIES[id || '1'] || null));
+        api.get<ApiResponse<Property>>(`/properties/${id}`)
+            .then(res => setProperty(res.data.data))
+            .catch(() => setProperty(null))
+            .finally(() => setLoading(false));
     }, [id]);
 
-    const p = property || MOCK_PROPERTIES[id || '1'] || MOCK_PROPERTIES['1'];
+    if (loading) {
+        return (
+            <div className="pt-16 min-h-screen bg-gray-50 flex items-center justify-center">
+                <Spinner size="w-8 h-8" />
+            </div>
+        );
+    }
+
+    if (!property) {
+        return (
+            <div className="pt-16 min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Property Not Found</h2>
+                    <p className="text-gray-500">The property you're looking for doesn't exist or has been removed.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const p = property;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await leadService.create({ ...form, propertyId: Number(id), budget: Number(form.budget) });
+            await leadService.create({ ...form, propertyId: p.id, budget: Number(form.budget) });
             toast.success('Thank you! An agent will contact you shortly.');
             setInterestModal(false);
             setForm({ customerName: '', customerEmail: '', customerPhone: '', budget: '', source: 'Website' });
@@ -53,13 +66,9 @@ const PropertyDetailPage: React.FC = () => {
             {/* Hero Image */}
             <div className="h-72 sm:h-[420px] relative overflow-hidden bg-blue-50">
                 {p.imageUrl ? (
-                    <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
+                    <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200"; }} />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-24 h-24 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200" alt="Fallback" className="w-full h-full object-cover" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                 <div className="absolute top-4 left-4 flex gap-2">

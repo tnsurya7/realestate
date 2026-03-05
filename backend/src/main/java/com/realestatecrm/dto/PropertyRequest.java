@@ -28,4 +28,9 @@ public class PropertyRequest {
     private String description;
 
     private PropertyStatus status;
+
+    private Integer bedrooms;
+    private Integer bathrooms;
+    private Double area;
+    private String imageUrl;
 }

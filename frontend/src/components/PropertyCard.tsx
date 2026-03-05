@@ -54,13 +54,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, showActions, onEd
                         alt={property.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
+                        onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400"; }}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-16 h-16 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400" alt="Fallback" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 )}
                 <div className="absolute top-3 left-3 flex gap-2">
                     <span className={`badge text-xs font-semibold ${typeColors[property.propertyType] || 'bg-gray-100 text-gray-600'}`}>

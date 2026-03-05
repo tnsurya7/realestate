@@ -126,4 +126,29 @@ public class AuthService {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
+
+
+    @Transactional
+    public UserDto updateUser(Long userId, com.realestatecrm.dto.UpdateUserRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new com.realestatecrm.exception.ResourceNotFoundException("User not found with id: " + userId));
+
+        // Check if email is being changed and if it's already taken by another user
+        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email already in use: " + request.getEmail());
+        }
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+
+        // Only update password if provided
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        User updatedUser = userRepository.save(user);
+        log.info("User updated: {}", updatedUser.getEmail());
+        return mapToDto(updatedUser);
+    }
+
 }

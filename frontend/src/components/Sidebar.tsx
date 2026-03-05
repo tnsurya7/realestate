@@ -14,7 +14,6 @@ const navItems: NavItem[] = [
     { label: 'Properties', path: '/properties', icon: '🏢' },
     { label: 'Leads', path: '/leads', icon: '👥', roles: ['ADMIN', 'AGENT'] },
     { label: 'Analytics', path: '/analytics', icon: '📊', roles: ['ADMIN'] },
-    { label: 'Reports', path: '/reports', icon: '📄', roles: ['ADMIN'] },
 ];
 
 const Sidebar: React.FC = () => {

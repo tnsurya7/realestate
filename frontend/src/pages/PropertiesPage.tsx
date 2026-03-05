@@ -7,15 +7,6 @@ import { motion } from 'framer-motion';
 
 const TYPES: PropertyType[] = ['APARTMENT', 'VILLA', 'COMMERCIAL', 'PLOT', 'OFFICE', 'WAREHOUSE'];
 
-const MOCK: Property[] = [
-    { id: 1, title: 'Luxury 3BHK in Anna Nagar', location: 'Chennai', price: 8500000, propertyType: 'APARTMENT', status: 'AVAILABLE', bedrooms: 3, bathrooms: 2, area: 1600, imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80' },
-    { id: 2, title: 'Premium Villa with Pool', location: 'Coimbatore', price: 22000000, propertyType: 'VILLA', status: 'AVAILABLE', bedrooms: 5, bathrooms: 4, area: 4500, imageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80' },
-    { id: 3, title: 'Commercial Space – IT Park', location: 'Hyderabad', price: 15000000, propertyType: 'COMMERCIAL', status: 'AVAILABLE', area: 3000, imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80' },
-    { id: 4, title: 'Studio Apartment – City Centre', location: 'Bengaluru', price: 4500000, propertyType: 'APARTMENT', status: 'AVAILABLE', bedrooms: 1, bathrooms: 1, area: 650, imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80' },
-    { id: 5, title: 'Farm House Retreat', location: 'Mysore', price: 11000000, propertyType: 'VILLA', status: 'SOLD', bedrooms: 4, bathrooms: 3, area: 8000, imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80' },
-    { id: 6, title: 'Office Space – Premier Zone', location: 'Mumbai', price: 35000000, propertyType: 'OFFICE', status: 'AVAILABLE', area: 5000, imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80' },
-];
-
 const PropertiesPage: React.FC = () => {
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,7 +18,7 @@ const PropertiesPage: React.FC = () => {
     useEffect(() => {
         propertyService.getPublic()
             .then(setProperties)
-            .catch(() => setProperties(MOCK))
+            .catch(() => setProperties([]))
             .finally(() => setLoading(false));
     }, []);
 

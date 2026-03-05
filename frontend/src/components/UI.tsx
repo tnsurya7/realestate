@@ -61,17 +61,17 @@ export const StatCard: React.FC<{
     color?: string;
     trend?: string;
 }> = ({ label, value, icon, color = 'bg-blue-500', trend }) => (
-    <div className="card p-5">
+    <div className="card p-5 h-full flex flex-col justify-between">
         <div className="flex items-start justify-between">
             <div>
                 <p className="text-sm text-gray-500 font-medium mb-1">{label}</p>
                 <p className="text-2xl font-bold text-gray-900">{value}</p>
-                {trend && <p className="text-xs text-green-600 mt-1 font-medium">{trend}</p>}
             </div>
             <div className={`${color} w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0`}>
                 {icon}
             </div>
         </div>
+        {trend && <div className="mt-3"><p className="text-xs text-green-600 font-medium">{trend}</p></div>}
     </div>
 );
 

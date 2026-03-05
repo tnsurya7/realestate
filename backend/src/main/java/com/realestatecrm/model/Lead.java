@@ -53,6 +53,9 @@ public class Lead {
 
     private LocalDateTime updatedAt;
 
+    @Column(name = "last_email_sent_date")
+    private LocalDateTime lastEmailSentDate;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

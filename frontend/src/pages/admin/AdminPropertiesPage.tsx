@@ -26,8 +26,11 @@ const AdminPropertiesPage: React.FC = () => {
     const [view, setView] = useState<'grid' | 'list'>('grid');
 
     const fetch = useCallback(async () => {
-        try { setProperties(await propertyService.getAll()); }
-        catch { toast.error('Failed to load properties'); }
+        try {
+            const data = await propertyService.getAll();
+            setProperties(data);
+        }
+        catch { setProperties([]); }
         finally { setLoading(false); }
     }, []);
 
@@ -47,7 +50,11 @@ const AdminPropertiesPage: React.FC = () => {
         setSaving(true);
         try {
             const payload = { ...form, price: parseFloat(form.price), bedrooms: form.bedrooms ? parseInt(form.bedrooms) : undefined, bathrooms: form.bathrooms ? parseInt(form.bathrooms) : undefined, area: form.area ? parseFloat(form.area) : undefined };
-            editing ? await propertyService.update(editing.id, payload) : await propertyService.create(payload);
+            if (editing) {
+                await propertyService.update(editing.id, payload);
+            } else {
+                await propertyService.create(payload);
+            }
             toast.success(editing ? 'Property updated!' : 'Property created!');
             setShowModal(false);
             fetch();
@@ -90,7 +97,7 @@ const AdminPropertiesPage: React.FC = () => {
                     {Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)}
                 </div>
             ) : filtered.length === 0 ? (
-                <EmptyState icon="🏠" title="No properties yet" description="Add your first property to get started." />
+                <EmptyState icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>} title="No properties yet" description="Add your first property to get started." />
             ) : view === 'grid' ? (
                 <motion.div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     {filtered.map(p => (
@@ -120,7 +127,17 @@ const AdminPropertiesPage: React.FC = () => {
                                     <td className="px-4 py-3"><span className={`badge ${p.status === 'AVAILABLE' ? 'badge-available' : 'badge-sold'}`}>{p.status}</span></td>
                                     <td className="px-4 py-3 text-right">
                                         <button onClick={() => openEdit(p)} className="btn-secondary btn-sm text-xs mr-2">Edit</button>
-                                        <button onClick={() => handleDelete(p.id)} className="btn-danger btn-sm text-xs">Delete</button>
+                                        <button onClick={() => {
+                                            toast((t) => (
+                                                <div>
+                                                    <p className="mb-2">Delete this property?</p>
+                                                    <div className="flex gap-2">
+                                                        <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={async () => { toast.dismiss(t.id); try { await propertyService.delete(p.id); fetch(); toast.success('Property deleted!'); } catch { toast.error('Failed to delete'); } }}>Yes</button>
+                                                        <button className="bg-gray-200 px-2 py-1 rounded" onClick={() => toast.dismiss(t.id)}>No</button>
+                                                    </div>
+                                                </div>
+                                            ), { duration: 4000 });
+                                        }} className="btn-danger btn-sm text-xs">Delete</button>
                                     </td>
                                 </tr>
                             ))}
@@ -130,7 +147,7 @@ const AdminPropertiesPage: React.FC = () => {
             )}
 
             {/* Modal */}
-            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? '✏️ Edit Property' : '+ New Property'} maxWidth="max-w-2xl">
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editing ? 'Edit Property' : 'New Property'} maxWidth="max-w-2xl">
                 <form onSubmit={handleSave} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2"><label className="label">Title *</label><input className="input-field" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required placeholder="e.g. Luxury 3BHK in Anna Nagar" /></div>

@@ -27,6 +27,19 @@ public class PropertyService {
                 .collect(Collectors.toList());
     }
 
+    public org.springframework.data.domain.Page<PropertyDto> getAllProperties(org.springframework.data.domain.Pageable pageable) {
+        log.info("Fetching properties - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        return propertyRepository.findAll(pageable).map(this::mapToDto);
+    }
+
+    public List<PropertyDto> getAllPropertiesList() {
+        log.info("Fetching all properties without pagination");
+        return propertyRepository.findAll().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+
     public List<PropertyDto> getAvailableProperties() {
         return propertyRepository.findByStatus(PropertyStatus.AVAILABLE).stream()
                 .map(this::mapToDto)
@@ -48,6 +61,10 @@ public class PropertyService {
                 .propertyType(request.getPropertyType())
                 .description(request.getDescription())
                 .status(request.getStatus() != null ? request.getStatus() : PropertyStatus.AVAILABLE)
+                .bedrooms(request.getBedrooms())
+                .bathrooms(request.getBathrooms())
+                .area(request.getArea())
+                .imageUrl(request.getImageUrl())
                 .build();
 
         Property saved = propertyRepository.save(property);
@@ -65,6 +82,10 @@ public class PropertyService {
         property.setPrice(request.getPrice());
         property.setPropertyType(request.getPropertyType());
         property.setDescription(request.getDescription());
+        property.setBedrooms(request.getBedrooms());
+        property.setBathrooms(request.getBathrooms());
+        property.setArea(request.getArea());
+        property.setImageUrl(request.getImageUrl());
         if (request.getStatus() != null) {
             property.setStatus(request.getStatus());
         }
@@ -91,6 +112,10 @@ public class PropertyService {
                 .description(property.getDescription())
                 .status(property.getStatus())
                 .createdAt(property.getCreatedAt())
+                .bedrooms(property.getBedrooms())
+                .bathrooms(property.getBathrooms())
+                .area(property.getArea())
+                .imageUrl(property.getImageUrl())
                 .build();
     }
 }

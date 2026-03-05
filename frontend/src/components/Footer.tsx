@@ -1,6 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+const PHONE = import.meta.env.VITE_CONTACT_PHONE || '9360004968';
+const EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'suryakumar56394@gmail.com';
+
 const Footer: React.FC = () => (
     <footer className="bg-gray-900 text-gray-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -41,9 +44,15 @@ const Footer: React.FC = () => (
                 <div>
                     <h3 className="text-white font-semibold mb-4">Contact</h3>
                     <ul className="space-y-2 text-sm text-gray-400">
-                        <li>📍 Anna Nagar, Chennai – 600040</li>
-                        <li>📞 +91 9360004968</li>
-                        <li>✉️ suryakumar56394@gmail.com</li>
+                        <li>
+                            <a href="https://maps.google.com/?q=Anna+Nagar,+Chennai" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">📍 Anna Nagar, Chennai – 600040</a>
+                        </li>
+                        <li>
+                            <a href={`tel:+91${PHONE}`} className="hover:text-blue-400 transition-colors">📞 +91 {PHONE}</a>
+                        </li>
+                        <li>
+                            <a href={`mailto:${EMAIL}`} className="hover:text-blue-400 transition-colors">✉️ {EMAIL}</a>
+                        </li>
                         <li>🕒 Mon–Sat: 9 AM – 6 PM</li>
                     </ul>
                 </div>
