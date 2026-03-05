@@ -74,6 +74,13 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(leadService.getLeadById(id)));
     }
 
+    @GetMapping("/leads/{id}/history")
+    @Operation(summary = "Get lead status change history")
+    public ResponseEntity<ApiResponse<List<com.realestatecrm.model.LeadStatusHistory>>> getLeadHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(leadService.getLeadStatusHistory(id)));
+    }
+
+
     @PostMapping("/leads")
     @Operation(summary = "Create a lead")
     public ResponseEntity<ApiResponse<LeadDto>> createLead(@Valid @RequestBody LeadRequest request) {

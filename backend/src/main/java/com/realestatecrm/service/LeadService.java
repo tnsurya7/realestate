@@ -6,14 +6,18 @@ import com.realestatecrm.exception.BadRequestException;
 import com.realestatecrm.exception.ResourceNotFoundException;
 import com.realestatecrm.model.Lead;
 import com.realestatecrm.model.LeadStatus;
+import com.realestatecrm.model.LeadStatusHistory;
 import com.realestatecrm.model.Property;
 import com.realestatecrm.model.Role;
 import com.realestatecrm.model.User;
 import com.realestatecrm.repository.LeadRepository;
+import com.realestatecrm.repository.LeadStatusHistoryRepository;
 import com.realestatecrm.repository.PropertyRepository;
 import com.realestatecrm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,7 @@ public class LeadService {
     private final LeadRepository leadRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
+    private final LeadStatusHistoryRepository leadStatusHistoryRepository;
     private final PropertyService propertyService;
     private final EmailService emailService;
 
@@ -133,11 +138,50 @@ public class LeadService {
     }
 
     @Transactional
-    public LeadDto updateLeadStatus(Long id, LeadStatus status) {
+    public LeadDto updateLeadStatus(Long id, LeadStatus newStatus) {
         Lead lead = leadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lead", "id", id));
-        lead.setStatus(status);
+        
+        LeadStatus oldStatus = lead.getStatus();
+        
+        // Save history if status changed
+        if (oldStatus != newStatus) {
+            User changedBy = getCurrentUser();
+            
+            LeadStatusHistory history = LeadStatusHistory.builder()
+                    .lead(lead)
+                    .oldStatus(oldStatus)
+                    .newStatus(newStatus)
+                    .changedBy(changedBy)
+                    .notes("Status changed from " + oldStatus + " to " + newStatus)
+                    .build();
+            
+            leadStatusHistoryRepository.save(history);
+            log.info("Lead {} status changed from {} to {} by {}", 
+                     id, oldStatus, newStatus, changedBy != null ? changedBy.getEmail() : "system");
+        }
+        
+        lead.setStatus(newStatus);
         return mapToDto(leadRepository.save(lead));
+    }
+    
+    public List<LeadStatusHistory> getLeadStatusHistory(Long leadId) {
+        log.info("Fetching status history for lead: {}", leadId);
+        return leadStatusHistoryRepository.findByLeadIdOrderByChangedAtDesc(leadId);
+    }
+    
+    private User getCurrentUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated() && 
+                !"anonymousUser".equals(authentication.getPrincipal())) {
+                String email = authentication.getName();
+                return userRepository.findByEmail(email).orElse(null);
+            }
+        } catch (Exception e) {
+            log.warn("Could not get current user: {}", e.getMessage());
+        }
+        return null;
     }
 
     @Transactional
