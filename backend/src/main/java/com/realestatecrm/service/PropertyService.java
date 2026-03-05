@@ -118,4 +118,22 @@ public class PropertyService {
                 .imageUrl(property.getImageUrl())
                 .build();
     }
+
+
+    public org.springframework.data.domain.Page<PropertyDto> searchProperties(
+            String city,
+            com.realestatecrm.model.PropertyType type,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            Integer bedrooms,
+            com.realestatecrm.model.PropertyStatus status,
+            org.springframework.data.domain.Pageable pageable) {
+
+        log.info("Searching properties - city: {}, type: {}, minPrice: {}, maxPrice: {}, bedrooms: {}, status: {}",
+                 city, type, minPrice, maxPrice, bedrooms, status);
+
+        return propertyRepository.searchProperties(city, type, minPrice, maxPrice, bedrooms, status, pageable)
+                .map(this::mapToDto);
+    }
+
 }

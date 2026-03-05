@@ -30,6 +30,36 @@ public class PropertyController {
         return ResponseEntity.ok(ApiResponse.success(propertyService.getAvailableProperties()));
     }
 
+    @GetMapping("/properties/search")
+    @Operation(summary = "Search properties with filters (Public)")
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<PropertyDto>>> searchProperties(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) com.realestatecrm.model.PropertyType type,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) Integer bedrooms,
+            @RequestParam(required = false) com.realestatecrm.model.PropertyStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        org.springframework.data.domain.Sort.Direction sortDirection =
+            direction.equalsIgnoreCase("ASC") ?
+            org.springframework.data.domain.Sort.Direction.ASC :
+            org.springframework.data.domain.Sort.Direction.DESC;
+
+        org.springframework.data.domain.Pageable pageable =
+            org.springframework.data.domain.PageRequest.of(page, size,
+            org.springframework.data.domain.Sort.by(sortDirection, sortBy));
+
+        org.springframework.data.domain.Page<PropertyDto> properties =
+            propertyService.searchProperties(city, type, minPrice, maxPrice, bedrooms, status, pageable);
+
+        return ResponseEntity.ok(ApiResponse.success(properties));
+    }
+
+
     @GetMapping("/properties/{id}")
     @Operation(summary = "Get property by ID (Public)")
     public ResponseEntity<ApiResponse<PropertyDto>> getPropertyById(@PathVariable Long id) {
