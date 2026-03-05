@@ -23,7 +23,7 @@ export const leadService = {
     },
     async updateStatus(id: number, status: LeadStatus, isAgent = false): Promise<Lead> {
         const url = isAgent ? `/agent/leads/${id}/status` : `/admin/leads/${id}/status`;
-        const res = await api.patch<ApiResponse<Lead>>(url, { status });
+        const res = await api.patch<ApiResponse<Lead>>(`${url}?status=${status}`);
         return res.data.data;
     },
     async addNotes(id: number, notes: string): Promise<Lead> {
@@ -31,7 +31,7 @@ export const leadService = {
         return res.data.data;
     },
     async assignAgent(id: number, agentId: number): Promise<Lead> {
-        const res = await api.patch<ApiResponse<Lead>>(`/admin/leads/${id}/assign`, { agentId });
+        const res = await api.patch<ApiResponse<Lead>>(`/admin/leads/${id}/assign?agentId=${agentId}`);
         return res.data.data;
     },
 };
