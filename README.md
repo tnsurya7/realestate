@@ -313,6 +313,28 @@ Generates a static `dist` directory ready for deployment.
 
 ## 12. Deployment Guide
 
+### Docker Deployment (Recommended)
+
+The easiest way to deploy the entire stack is using Docker Compose:
+
+```bash
+# 1. Configure environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# 2. Build and start all services
+docker-compose up -d
+
+# 3. Access the application
+# Frontend: http://localhost:5173
+# Backend: http://localhost:8080
+# Swagger: http://localhost:8080/swagger-ui.html
+```
+
+For detailed Docker deployment instructions, see [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md).
+
+### Traditional Deployment
+
 - **Frontend Deployment (Vercel):** Connect the GitHub repository to Vercel. Set the Framework Preset to "Vite". Configure the `VITE_API_URL` environment variable to point to the production backend.
 - **Backend Deployment (Render/Railway):** Deploy the Spring Boot application using Docker or native Java environments. Ensure the `$PORT` variable is bound correctly.
 - **Database Hosting (Neon):** Neon provides an auto-scaling serverless Postgres instance. Supply the connection string into the backend's environment variables.

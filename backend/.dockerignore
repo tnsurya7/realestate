@@ -1,0 +1,14 @@
+target/
+.env
+.env.local
+*.log
+.DS_Store
+.git
+.gitignore
+README.md
+*.md
+.mvn/
+mvnw
+mvnw.cmd
+out.pdf
+start.sh
