@@ -3,7 +3,7 @@ import type { ApiResponse, Lead, LeadStatus } from '../types';
 
 export const leadService = {
     async getAll(): Promise<Lead[]> {
-        const res = await api.get<ApiResponse<Lead[]>>('/admin/leads');
+        const res = await api.get<ApiResponse<Lead[]>>('/admin/leads/all');
         return res.data.data;
     },
     async getMyLeads(): Promise<Lead[]> {

@@ -3,7 +3,7 @@ import type { ApiResponse, Property } from '../types';
 
 export const propertyService = {
     async getAll(): Promise<Property[]> {
-        const res = await api.get<ApiResponse<Property[]>>('/admin/properties');
+        const res = await api.get<ApiResponse<Property[]>>('/admin/properties/all');
         return res.data.data;
     },
     async getPublic(): Promise<Property[]> {
