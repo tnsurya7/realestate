@@ -33,7 +33,7 @@
 # Get JWT token first (login)
 TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"suryakumar56394@gmail.com","password":"Surya@777"}' \
+  -d '{"email":"admin@yourcompany.com","password":"YourPassword"}' \
   | jq -r '.data.token')
 
 # Trigger scheduler

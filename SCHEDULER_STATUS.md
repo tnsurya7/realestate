@@ -185,12 +185,12 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 
 ### .env
 ```env
-MAIL_USERNAME=suryakumar56394@gmail.com
-MAIL_PASSWORD=dhzrepymrheybspc
-CONTACT_PHONE=9360004968
-CONTACT_EMAIL=suryakumar56394@gmail.com
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-gmail-app-password-here
+CONTACT_PHONE=1234567890
+CONTACT_EMAIL=your-email@gmail.com
 COMPANY_NAME=RealEstate CRM
-COMPANY_ADDRESS=Anna Nagar, Chennai – 600040, Tamil Nadu
+COMPANY_ADDRESS=Your Address Here
 ```
 
 ---

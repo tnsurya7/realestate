@@ -11,8 +11,8 @@ Both frontend and backend are now running locally! Here's how to test all the ne
 
 ## 🔐 Login Credentials
 
-- **Email**: suryakumar56394@gmail.com
-- **Password**: Surya@777
+- **Email**: admin@yourcompany.com (from your .env ADMIN_EMAIL)
+- **Password**: Your admin password (from your .env ADMIN_PASSWORD)
 
 ## ✅ Feature Testing Checklist
 
