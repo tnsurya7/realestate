@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: realestatecrm-backend
+    runtime: java
+    runtimeVersion: 17
+    buildCommand: mvn clean package
+    startCommand: java -jar target/backend-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: Super Admin
+      - key: CONTACT_PHONE
+        value: "9360004968"
+      - key: CONTACT_EMAIL
+        value: suryakumar56394@gmail.com
+      - key: COMPANY_NAME
+        value: RealEstate CRM
+      - key: COMPANY_ADDRESS
+        value: "Anna Nagar, Chennai – 600040"
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+    healthCheckPath: /api/health
+    healthCheckInterval: 300

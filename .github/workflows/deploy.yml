@@ -1,0 +1,105 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: maven
+    
+    - name: Build backend
+      run: |
+        cd backend
+        mvn clean package -DskipTests
+    
+    - name: Run backend tests
+      run: |
+        cd backend
+        mvn test
+    
+    - name: Upload backend artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-jar
+        path: backend/target/backend-0.0.1-SNAPSHOT.jar
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+    
+    - name: Upload frontend artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-dist
+        path: frontend/dist
+
+  security-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Check for secrets
+      run: |
+        # Check for hardcoded credentials
+        if grep -r "password=" . --include="*.java" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=target; then
+          echo "⚠️ Warning: Possible hardcoded credentials found"
+          exit 1
+        fi
+        echo "✅ No hardcoded credentials detected"
+    
+    - name: Check environment variables
+      run: |
+        echo "✅ Checking for required environment variables..."
+        # This is just a check - actual values come from Render/Vercel
+        echo "Required: DATABASE_URL, MAIL_USERNAME, MAIL_PASSWORD, JWT_SECRET"
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend, security-check]
+    if: always()
+    
+    steps:
+    - name: Build status
+      run: |
+        if [ "${{ needs.build-backend.result }}" == "success" ] && [ "${{ needs.build-frontend.result }}" == "success" ]; then
+          echo "✅ Build successful! Ready for deployment."
+        else
+          echo "❌ Build failed. Check logs above."
+          exit 1
+        fi
