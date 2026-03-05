@@ -7,7 +7,6 @@ import com.realestatecrm.dto.LeadRequest;
 import com.realestatecrm.dto.UserDto;
 import com.realestatecrm.model.LeadStatus;
 import com.realestatecrm.model.Role;
-import com.realestatecrm.model.User;
 import com.realestatecrm.repository.UserRepository;
 import com.realestatecrm.service.AnalyticsService;
 import com.realestatecrm.service.LeadService;
@@ -40,6 +39,7 @@ public class AdminController {
     private final PdfReportService pdfReportService;
     private final UserRepository userRepository;
     private final com.realestatecrm.service.AuthService authService;
+    private final com.realestatecrm.scheduler.PropertyRecommendationScheduler propertyRecommendationScheduler;
 
     // ---- Leads ----
 
@@ -204,17 +204,14 @@ public class AdminController {
     @Operation(summary = "Manually trigger property recommendation emails (Admin only)")
     public ResponseEntity<ApiResponse<String>> triggerPropertyRecommendations() {
         try {
-            // Get scheduler bean and trigger manually
-            org.springframework.context.ApplicationContext context =
-                new org.springframework.context.annotation.AnnotationConfigApplicationContext().getParent();
-
             log.info("Manual trigger requested for property recommendations");
+            propertyRecommendationScheduler.triggerManually();
             return ResponseEntity.ok(ApiResponse.success(
                 "Property recommendation scheduler triggered successfully. Check logs for details.",
                 "Scheduler triggered"
             ));
         } catch (Exception e) {
-            log.error("Failed to trigger scheduler: {}", e.getMessage());
+            log.error("Failed to trigger scheduler: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to trigger scheduler: " + e.getMessage()));
         }
