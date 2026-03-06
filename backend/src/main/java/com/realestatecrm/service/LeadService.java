@@ -36,11 +36,10 @@ public class LeadService {
     private final PropertyService propertyService;
     private final EmailService emailService;
 
-    public List<LeadDto> getAllLeadsList() {
-        log.info("Fetching all leads without pagination");
-        return leadRepository.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<LeadDto> getAllLeads(org.springframework.data.domain.Pageable pageable) {
+        log.info("Fetching leads - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        return leadRepository.findAll(pageable).map(this::mapToDto);
     }
 
     public org.springframework.data.domain.Page<LeadDto> getAllLeads(org.springframework.data.domain.Pageable pageable) {
@@ -49,12 +48,14 @@ public class LeadService {
     }
 
 
+    @Transactional(readOnly = true)
     public LeadDto getLeadById(Long id) {
         Lead lead = leadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lead", "id", id));
         return mapToDto(lead);
     }
 
+    @Transactional(readOnly = true)
     public List<LeadDto> getLeadsByAgent(Long agentId) {
         User agent = userRepository.findById(agentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Agent", "id", agentId));
