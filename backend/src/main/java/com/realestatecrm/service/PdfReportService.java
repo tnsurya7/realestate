@@ -39,6 +39,7 @@ public class PdfReportService {
     private static final Font SMALL_FONT = new Font(Font.FontFamily.HELVETICA, 8, Font.NORMAL,
             new BaseColor(100, 116, 139));
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public byte[] generateReport() throws DocumentException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4, 40, 40, 60, 40);
