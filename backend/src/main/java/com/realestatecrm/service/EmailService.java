@@ -3,22 +3,29 @@ package com.realestatecrm.service;
 import com.realestatecrm.dto.ContactRequest;
 import com.realestatecrm.dto.LeadRequest;
 import com.realestatecrm.model.Property;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${sendgrid.api.key}")
+    private String sendGridApiKey;
 
+    @Value("${mail.from}")
+    private String fromEmail;
+
+    @Value("${mail.from}")
+    private String fromEmail;
+    
     @Value("${app.admin.email}")
     private String adminEmail;
     
@@ -74,76 +81,49 @@ public class EmailService {
     }
 
 
-    public void sendContactFormEmail(ContactRequest request) {
+    private void sendEmail(String to, String subject, String htmlContent) {
         try {
-            // Send to admin
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Email from = new Email(fromEmail);
+            Email toEmail = new Email(to);
+            Content content = new Content("text/html", htmlContent);
+            Mail mail = new Mail(from, subject, toEmail, content);
 
-            helper.setTo(adminEmail);
-            helper.setSubject("🔔 New Contact Form Submission - " + companyName);
-            helper.setText(buildContactEmailTemplate(request), true);
-
-            mailSender.send(message);
-            log.info("Contact form email sent successfully to {}", adminEmail);
+            SendGrid sg = new SendGrid(sendGridApiKey);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
             
-            // Send confirmation to sender
-            sendContactConfirmationEmail(request);
-        } catch (MessagingException e) {
-            log.error("Failed to send contact form email", e);
+            Response response = sg.api(request);
+            log.info("Email sent successfully to {} - Status: {}", to, response.getStatusCode());
+        } catch (IOException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
-    
-    public void sendContactConfirmationEmail(ContactRequest request) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(request.getEmail());
-            helper.setSubject("✅ We Received Your Message - " + companyName);
-            helper.setText(buildContactConfirmationTemplate(request), true);
-
-            mailSender.send(message);
-            log.info("Confirmation email sent to {}", request.getEmail());
-        } catch (MessagingException e) {
-            log.error("Failed to send confirmation email", e);
-        }
+    public void sendContactFormEmail(ContactRequest request) {
+        // Send to admin
+        sendEmail(adminEmail, "🔔 New Contact Form Submission - " + companyName, buildContactEmailTemplate(request));
+        log.info("Contact form email sent to admin");
+        
+        // Send confirmation to sender
+        sendEmail(request.getEmail(), "✅ We Received Your Message - " + companyName, buildContactConfirmationTemplate(request));
+        log.info("Confirmation email sent to {}", request.getEmail());
     }
 
     public void sendLeadNotificationEmail(LeadRequest request, Property property) {
-        try {
-            // Send to admin
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setTo(adminEmail);
-            helper.setSubject("🎯 New Lead Inquiry - " + companyName);
-            helper.setText(buildLeadEmailTemplate(request, property), true);
-
-            mailSender.send(message);
-            log.info("Lead notification email sent successfully to {}", adminEmail);
-            
-            // Send confirmation to lead
-            sendLeadConfirmationEmail(request, property);
-        } catch (MessagingException e) {
-            log.error("Failed to send lead notification email", e);
-        }
+        // Send to admin
+        sendEmail(adminEmail, "🎯 New Lead Inquiry - " + companyName, buildLeadEmailTemplate(request, property));
+        log.info("Lead notification email sent to admin");
+        
+        // Send confirmation to lead
+        sendEmail(request.getCustomerEmail(), "✅ Thank You for Your Interest - " + companyName, buildLeadConfirmationTemplate(request, property));
+        log.info("Lead confirmation email sent to {}", request.getCustomerEmail());
     }
-    
-    public void sendLeadConfirmationEmail(LeadRequest request, Property property) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(request.getCustomerEmail());
-            helper.setSubject("✅ Thank You for Your Interest - " + companyName);
-            helper.setText(buildLeadConfirmationTemplate(request, property), true);
-
-            mailSender.send(message);
-            log.info("Lead confirmation email sent to {}", request.getCustomerEmail());
-        } catch (MessagingException e) {
-            log.error("Failed to send lead confirmation email", e);
-        }
+    public void sendPropertyRecommendations(com.realestatecrm.model.Lead lead, java.util.List<com.realestatecrm.model.Property> properties) {
+        sendEmail(lead.getCustomerEmail(), "🏡 Property Recommendations Just for You - " + companyName, buildPropertyRecommendationTemplate(lead, properties));
+        log.info("Property recommendations sent to: {}", lead.getCustomerEmail());
     }
 
     private String buildContactEmailTemplate(ContactRequest request) {
@@ -528,19 +508,9 @@ public class EmailService {
 
 
     public void sendPropertyRecommendations(com.realestatecrm.model.Lead lead, java.util.List<com.realestatecrm.model.Property> properties) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setTo(lead.getCustomerEmail());
-            helper.setSubject("🏡 Property Recommendations Just for You - " + companyName);
-            helper.setText(buildPropertyRecommendationTemplate(lead, properties), true);
-
-            mailSender.send(message);
-            log.info("Property recommendations sent to: {}", lead.getCustomerEmail());
-        } catch (MessagingException e) {
-            log.error("Failed to send property recommendations", e);
-            throw new RuntimeException("Failed to send property recommendations", e);
+        sendEmail(lead.getCustomerEmail(), "🏡 Property Recommendations Just for You - " + companyName, buildPropertyRecommendationTemplate(lead, properties));
+        log.info("Property recommendations sent to: {}", lead.getCustomerEmail());
+    }meException("Failed to send property recommendations", e);
         }
     }
 
