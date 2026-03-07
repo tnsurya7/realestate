@@ -53,26 +53,26 @@ Wait for Render to deploy (check logs at https://dashboard.render.com)
 curl -X POST https://realestatecrm-backend-yn5j.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "suryakumar56394@gmail.com",
-    "password": "Surya@777"
+    "email": "your_admin_email@example.com",
+    "password": "your_admin_password"
   }'
 
 # Copy the token from response, then test email:
-curl -X POST "https://realestatecrm-backend-yn5j.onrender.com/api/admin/test-email?to=suryakumar56394@gmail.com" \
+curl -X POST "https://realestatecrm-backend-yn5j.onrender.com/api/admin/test-email?to=your_email@example.com" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 #### Using Postman:
 1. **Login** (POST): `https://realestatecrm-backend-yn5j.onrender.com/api/auth/login`
-   - Body: `{"email": "suryakumar56394@gmail.com", "password": "Surya@777"}`
+   - Body: `{"email": "your_admin_email@example.com", "password": "your_password"}`
    - Copy the `token` from response
 
-2. **Test Email** (POST): `https://realestatecrm-backend-yn5j.onrender.com/api/admin/test-email?to=suryakumar56394@gmail.com`
+2. **Test Email** (POST): `https://realestatecrm-backend-yn5j.onrender.com/api/admin/test-email?to=your_email@example.com`
    - Headers: `Authorization: Bearer YOUR_TOKEN`
    - Expected Response: `{"success": true, "message": "Email sent", "data": "Test email sent successfully to suryakumar56394@gmail.com. Check inbox and spam folder."}`
 
 ### Step 3: Verify Email Received
-- Check inbox: `suryakumar56394@gmail.com`
+- Check your inbox
 - Check spam folder if not in inbox
 - Email subject: "🔔 New Contact Form Submission - RealEstate CRM"
 - Email should contain test message
