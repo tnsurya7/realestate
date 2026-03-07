@@ -40,6 +40,7 @@ public class AdminController {
     private final UserRepository userRepository;
     private final com.realestatecrm.service.AuthService authService;
     private final com.realestatecrm.scheduler.PropertyRecommendationScheduler propertyRecommendationScheduler;
+    private final com.realestatecrm.service.EmailService emailService;
 
     // ---- Leads ----
 
@@ -216,5 +217,34 @@ public class AdminController {
                 .body(ApiResponse.error("Failed to trigger scheduler: " + e.getMessage()));
         }
     }
+
+
+    @PostMapping("/test-email")
+    @Operation(summary = "Test SendGrid email sending (Admin only)")
+    public ResponseEntity<ApiResponse<String>> testEmail(@RequestParam(required = false) String to) {
+        try {
+            String recipient = (to != null && !to.isEmpty()) ? to : "suryakumar56394@gmail.com";
+
+            // Create a test contact request
+            com.realestatecrm.dto.ContactRequest testRequest = new com.realestatecrm.dto.ContactRequest();
+            testRequest.setName("Test User");
+            testRequest.setEmail(recipient);
+            testRequest.setPhone("9360004968");
+            testRequest.setMessage("This is a test email from SendGrid API integration. If you receive this, SendGrid is working correctly!");
+
+            emailService.sendContactFormEmail(testRequest);
+
+            log.info("Test email sent successfully to: {}", recipient);
+            return ResponseEntity.ok(ApiResponse.success(
+                "Test email sent successfully to " + recipient + ". Check inbox and spam folder.",
+                "Email sent"
+            ));
+        } catch (Exception e) {
+            log.error("Failed to send test email: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Failed to send test email: " + e.getMessage()));
+        }
+    }
+
 
 }

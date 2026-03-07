@@ -22,9 +22,6 @@ public class EmailService {
 
     @Value("${mail.from}")
     private String fromEmail;
-
-    @Value("${mail.from}")
-    private String fromEmail;
     
     @Value("${app.admin.email}")
     private String adminEmail;
@@ -504,14 +501,6 @@ public class EmailService {
                 contactPhone,
                 companyName
             );
-    }
-
-
-    public void sendPropertyRecommendations(com.realestatecrm.model.Lead lead, java.util.List<com.realestatecrm.model.Property> properties) {
-        sendEmail(lead.getCustomerEmail(), "🏡 Property Recommendations Just for You - " + companyName, buildPropertyRecommendationTemplate(lead, properties));
-        log.info("Property recommendations sent to: {}", lead.getCustomerEmail());
-    }meException("Failed to send property recommendations", e);
-        }
     }
 
     private String buildPropertyRecommendationTemplate(com.realestatecrm.model.Lead lead, java.util.List<com.realestatecrm.model.Property> properties) {
